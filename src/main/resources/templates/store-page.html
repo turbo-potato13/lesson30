@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Book store</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <div th:replace="~{navigation :: navigation(BookStore)}"/>
+
+    <h1>Магазин книг</h1>
+    <br>
+    <h4>Фильтр:</h4>
+    <form th:action="@{'/books'}" method="get">
+        <div class="form-row">
+            <div class="form-group">
+                <label>Минимальная цена</label>
+                <input th:value="${param.minPrice != null ? param.minPrice : null}" type="number"
+                       class="form-control form-control-sm" name="minPrice">
+            </div>
+            <div class="form-group">
+                <label>Максимальная цена</label>
+                <input th:value="${param.maxPrice != null ? param.maxPrice : null}" type="number"
+                       class="form-control form-control-sm" name="maxPrice">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Название</label>
+            <input th:value="${param.titlePart != null ? param.titlePart : null}" type="text"
+                   class="form-control form-control-sm" name="titlePart">
+        </div>
+        <div class="form-group">
+            <label>Жанры</label>
+            <div class="form-check" th:each="g : ${T(com.geekbrains.book.store.entities.Book.Genre).values()}">
+                <input type="checkbox" class="form-check-input" name="genre"
+                       th:checked="${param.genre != null} ? ${#strings.contains(param.genre, g)} : false"
+                       th:value="${g}">
+                <label class="form-check-label" th:text="${g}"></label>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Применить</button>
+    </form>
+
+    <br>
+    <br>
+    <h4>Список книг:</h4>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <td>Название</td>
+            <td>Жанр</td>
+            <td>Описание</td>
+            <td>Цена</td>
+            <td>Год издания</td>
+            <td></td>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="b : ${booksPage.getContent()}">
+            <td th:text="${b.title}"></td>
+            <td th:text="${b.genre.getRus()}"></td>
+            <td th:text="${b.description}"></td>
+            <td th:text="${b.price}"></td>
+            <td th:text="${b.publishYear}"></td>
+            <td>
+                <a th:href="@{'/cart/add/' + ${b.id}}" class="btn btn-primary">Добавить в корзину</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            <li class="page-item" th:classappend="${booksPage.isFirst() ? 'disabled' : ''}">
+                <a class="page-link"
+                   th:href="@{'/books/?p='+ ${booksPage.previousOrFirstPageable().getPageNumber() + 1} + ${filterDef}}">Назад</a>
+            </li>
+
+            <li class="page-item" th:classappend="${booksPage.getNumber() + 1 == i ? 'active' : ''}"
+                th:each="i : ${#numbers.sequence((booksPage.getNumber() + 1 > 2 ? booksPage.getNumber() - 1 : 1), (booksPage.getNumber() + 3 < booksPage.getTotalPages() ? booksPage.getNumber() + 3 : booksPage.getTotalPages()) )}">
+                <a class="page-link" th:text="${i}" th:href="@{'/books/?p=' + ${i} + ${filterDef}}"></a>
+            </li>
+
+            <li class="page-item" th:classappend="${booksPage.isLast() ? 'disabled' : ''}">
+                <a class="page-link"
+                   th:href="@{'/books/?p='+ ${booksPage.nextOrLastPageable().getPageNumber() + 1} + ${filterDef}}">Вперед</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+</body>
+</html>
